@@ -1,0 +1,12 @@
+{
+  "name": "Pincode",
+  "short_name": "WorldPincode",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
+  "description": "The fastest way to find Postal Codes, Pincodes, and Zip Codes globally. AI-powered search for accurate location data.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}
