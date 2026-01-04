@@ -8,17 +8,17 @@ export const searchPostcodes = async (query: string): Promise<SearchResult> => {
   try {
     const response = await ai.models.generateContent({
       model: GEMINI_MODEL,
-      contents: `Find postal codes/pincodes/zip codes related to: "${query}".
+      contents: `Find the exact and accurate postal code/pincode for: "${query}".
       
-      Rules:
-      1. If the user searches for a specific location (Mandal, Village, Area), list the specific postal code(s).
-      2. Identify the hierarchy (Country -> State -> District -> Mandal/Area).
-      3. Provide the answer in a clear, readable format (bullet points or a small table structure using Markdown).
-      4. Be concise but accurate.
-      5. Include the country name clearly.
+      Strict Data Accuracy Rules:
+      1. **Accuracy is paramount.** If the location is in India, ensure the Pincode matches the official Department of Posts data.
+      2. If the query specifies a Village or Mandal, return the specific Pincode for that locality, not just the District code.
+      3. clearly state the hierarchy: Country -> State -> District -> Tehsil/Mandal -> Village.
+      4. If multiple pincodes apply to a city, list them broken down by area (e.g., "Bangalore North: 5600XX").
+      5. Present the data in a clean, easy-to-read table or bullet list using Markdown.
       `,
       config: {
-        tools: [{ googleSearch: {} }], // Enable Google Search Grounding for accuracy
+        tools: [{ googleSearch: {} }], // Keep Google Search for verification
       },
     });
 
@@ -44,20 +44,23 @@ export const getLocationSuggestions = async (
 ): Promise<string[]> => {
   try {
     let prompt = "";
+    // We use strict prompts to guide the model to real administrative divisions
     if (level === 'state') {
-      prompt = `List the states, provinces, or major regions of ${context.country}. Return only a list of names.`;
+      prompt = `List the all official States and Union Territories of ${context.country}. Return only a clean JSON array of names.`;
     } else if (level === 'city') {
-      prompt = `List the districts or major cities in ${context.state}, ${context.country}. Return only a list of names.`;
+      prompt = `List the all administrative Districts (or major Cities if districts are not applicable) in ${context.state}, ${context.country}. Return only a clean JSON array of names.`;
     } else if (level === 'area') {
-      prompt = `List the major areas, localities, or neighborhoods in ${context.city}, ${context.state}, ${context.country}. Return only a list of names.`;
+      prompt = `List the major localities, areas, or neighborhoods within ${context.city}, ${context.state}. Return only a clean JSON array of names.`;
     } else if (level === 'mandal') {
-      prompt = `List the Mandals (administrative divisions/blocks/tehsils) in the district of ${context.city}, ${context.state}, ${context.country}. Return only a list of names.`;
+      // Expanded terminology for India (Mandal / Tehsil / Taluk / Block)
+      prompt = `List the all Mandals, Tehsils, Taluks, or Administrative Blocks in the ${context.city} district of ${context.state}, ${context.country}. Return only a clean JSON array of names.`;
     } else if (level === 'village') {
-      prompt = `List the Villages or Post Office names in ${context.mandal} Mandal, ${context.city} District, ${context.state}, ${context.country}. Return only a list of names.`;
+      prompt = `List the significant Villages, Towns, or Post Office locations in ${context.mandal} (Mandal/Tehsil), ${context.city} District, ${context.state}. Return only a clean JSON array of names.`;
     }
 
+    // CRITICAL CHANGE: Use GEMINI_MODEL (Flash) instead of Lite for higher accuracy on Indian Geography
     const response = await ai.models.generateContent({
-      model: GEMINI_LITE_MODEL,
+      model: GEMINI_MODEL, 
       contents: prompt,
       config: {
         responseMimeType: "application/json",
@@ -82,10 +85,11 @@ export const getLocationSuggestions = async (
 
 export const getQuickSuggestions = async (partialQuery: string): Promise<string[]> => {
   try {
+    // Keep Lite for quick autocomplete as it needs speed over deep accuracy
     const response = await ai.models.generateContent({
       model: GEMINI_LITE_MODEL,
-      contents: `List 5 most likely geographical locations, cities, or postal code queries that start with or relate to "${partialQuery}". 
-      Return only a JSON array of strings. Do not include explanations.`,
+      contents: `List 5 valid geographical locations or pincode queries starting with "${partialQuery}". 
+      Return only a JSON array of strings.`,
       config: {
         responseMimeType: "application/json",
         responseSchema: {

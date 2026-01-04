@@ -132,7 +132,7 @@ const App: React.FC = () => {
         structuredQuery = `Postal code for ${detailedForm.area}, ${detailedForm.city} District, ${detailedForm.state}, ${detailedForm.country}`;
     } else if (subSearchMode === 'mandal') {
         if (!detailedForm.country || !detailedForm.state || !detailedForm.city || !detailedForm.mandal || !detailedForm.village) return;
-        structuredQuery = `Postal code for ${detailedForm.village}, ${detailedForm.mandal} Mandal, ${detailedForm.city} District, ${detailedForm.state}, ${detailedForm.country}`;
+        structuredQuery = `Postal code for ${detailedForm.village}, ${detailedForm.mandal} Mandal/Tehsil, ${detailedForm.city} District, ${detailedForm.state}, ${detailedForm.country}`;
     } else {
         return;
     }
@@ -456,7 +456,7 @@ const App: React.FC = () => {
                                         : 'text-slate-500 hover:text-slate-700'
                                     }`}
                                 >
-                                    Mandal & Village
+                                    Mandal / Tehsil
                                 </button>
                             </div>
                         </div>
@@ -490,7 +490,7 @@ const App: React.FC = () => {
                                 {/* Mandal */}
                                 <div>
                                     <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5 ml-1 flex justify-between">
-                                        <span>Mandal</span>
+                                        <span>Mandal / Tehsil</span>
                                         {fieldLoading.mandals && <span className="text-primary animate-pulse">Loading...</span>}
                                     </label>
                                     <select 
@@ -499,14 +499,14 @@ const App: React.FC = () => {
                                         disabled={!detailedForm.city || fieldLoading.mandals}
                                         className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
-                                        <option value="">{detailedForm.city ? "Select Mandal" : "Select District First"}</option>
+                                        <option value="">{detailedForm.city ? "Select Mandal/Tehsil" : "Select District First"}</option>
                                         {suggestionLists.mandals.map(m => <option key={m} value={m}>{m}</option>)}
                                     </select>
                                 </div>
                                 {/* Village / Postal */}
                                 <div>
                                     <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5 ml-1 flex justify-between">
-                                        <span>Village / Post Office</span>
+                                        <span>Village / Locality</span>
                                         {fieldLoading.villages && <span className="text-primary animate-pulse">Loading...</span>}
                                     </label>
                                     <select 
