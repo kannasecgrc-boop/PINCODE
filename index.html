@@ -7,22 +7,63 @@
     <!-- Primary Meta Tags -->
     <title>WorldPincode - Global Postal Code & Zip Code Finder</title>
     <meta name="title" content="WorldPincode - Global Postal Code & Zip Code Finder" />
-    <meta name="description" content="Find postal codes, pincodes, and zip codes for any location in the world instantly. Fast, AI-powered address and postcode search for India, USA, UK, and global cities." />
-    <meta name="keywords" content="pincode search, postal code finder, zip code lookup, world pincode, india pincode, usa zip code, address finder, post office code, area pincode" />
+    <meta name="description" content="Find accurate postal codes, pincodes, and zip codes for any location worldwide. AI-powered search for India, USA, UK, and global addresses. Get district, tehsil, and village level details." />
+    <meta name="keywords" content="pincode search, postal code finder, zip code lookup, find pincode, india pincode list, usa zip code, post office code, area pincode, tehsil pincode, village pincode" />
     <meta name="robots" content="index, follow" />
+    <meta name="googlebot" content="index, follow" />
     <meta name="language" content="English" />
     <meta name="author" content="WorldPincode" />
+    <meta name="revisit-after" content="1 days" />
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://worldpincode.com/" />
     <meta property="og:title" content="WorldPincode - Global Postal Code & Zip Code Finder" />
-    <meta property="og:description" content="Find postal codes, pincodes, and zip codes for any location in the world instantly. Fast, AI-powered address and postcode search." />
+    <meta property="og:description" content="Find accurate postal codes, pincodes, and zip codes for any location worldwide. AI-powered search for accurate location data." />
+    <meta property="og:site_name" content="WorldPincode" />
     
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image" />
     <meta property="twitter:title" content="WorldPincode - Global Postal Code & Zip Code Finder" />
-    <meta property="twitter:description" content="Find postal codes, pincodes, and zip codes for any location in the world instantly. Fast, AI-powered address and postcode search." />
+    <meta property="twitter:description" content="Find accurate postal codes, pincodes, and zip codes for any location worldwide. AI-powered search for accurate location data." />
+
+    <!-- Schema.org JSON-LD for SEO -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "WorldPincode",
+      "url": "https://worldpincode.com/",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://worldpincode.com/?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+      },
+      "description": "The fastest way to find Postal Codes, Pincodes, and Zip Codes globally."
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "WorldPincode",
+      "applicationCategory": "ReferenceApplication",
+      "operatingSystem": "Web",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "description": "AI-powered tool to find postal codes and zip codes globally with high accuracy."
+    }
+    </script>
+
+    <!-- Polyfill for process.env to prevent crashes in browser environments -->
+    <script>
+      if (typeof process === "undefined") {
+        window.process = { env: {} };
+      }
+    </script>
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script>

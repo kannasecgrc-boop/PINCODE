@@ -2,10 +2,15 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { GEMINI_MODEL, GEMINI_LITE_MODEL } from "../constants";
 import { SearchResult } from "../types";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// Initialize client lazily or inside functions to prevent immediate crash if key is missing on load
+const getAiClient = () => {
+    // Falls back to empty string to prevent constructor error, though API calls will still fail gracefully
+    return new GoogleGenAI({ apiKey: process.env.API_KEY || "" });
+};
 
 export const searchPostcodes = async (query: string): Promise<SearchResult> => {
   try {
+    const ai = getAiClient();
     const response = await ai.models.generateContent({
       model: GEMINI_MODEL,
       contents: `Find the exact and accurate postal code/pincode for: "${query}".
@@ -34,6 +39,10 @@ export const searchPostcodes = async (query: string): Promise<SearchResult> => {
     };
   } catch (error: any) {
     console.error("Gemini API Error:", error);
+    // Provide a more user-friendly error if it's an API Key issue
+    if (error.message?.includes("API key") || error.toString().includes("API_KEY")) {
+        throw new Error("API Configuration Error: Please check your API Key settings.");
+    }
     throw new Error(error.message || "Failed to fetch postal code data.");
   }
 };
@@ -43,6 +52,7 @@ export const getLocationSuggestions = async (
   context: { country?: string; state?: string; city?: string; mandal?: string }
 ): Promise<string[]> => {
   try {
+    const ai = getAiClient();
     let prompt = "";
     // We use strict prompts to guide the model to real administrative divisions
     if (level === 'state') {
@@ -85,6 +95,7 @@ export const getLocationSuggestions = async (
 
 export const getQuickSuggestions = async (partialQuery: string): Promise<string[]> => {
   try {
+    const ai = getAiClient();
     // Keep Lite for quick autocomplete as it needs speed over deep accuracy
     const response = await ai.models.generateContent({
       model: GEMINI_LITE_MODEL,
