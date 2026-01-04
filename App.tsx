@@ -176,8 +176,6 @@ const App: React.FC = () => {
     setSuggestionLists(prev => ({ ...prev, areas: [], mandals: [], villages: [] }));
 
     if (city) {
-      // Pre-fetch both options if possible, or fetch on mode switch. 
-      // For efficiency, let's fetch based on current sub-mode, but triggering the sub-mode switch also works.
       fetchSubLevelData(city, subSearchMode);
     }
   };
@@ -408,7 +406,7 @@ const App: React.FC = () => {
                             disabled={!detailedForm.country || fieldLoading.states}
                             className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            <option value="">{detailedForm.country ? "Select State" : "Select Country First"}</option>
+                            <option value="">{detailedForm.country ? (suggestionLists.states.length ? "Select State" : "No states found") : "Select Country First"}</option>
                             {suggestionLists.states.map(s => <option key={s} value={s}>{s}</option>)}
                         </select>
                         </div>
@@ -425,7 +423,7 @@ const App: React.FC = () => {
                             disabled={!detailedForm.state || fieldLoading.cities}
                             className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            <option value="">{detailedForm.state ? "Select City" : "Select State First"}</option>
+                            <option value="">{detailedForm.state ? (suggestionLists.cities.length ? "Select City" : "No cities found") : "Select State First"}</option>
                             {suggestionLists.cities.map(c => <option key={c} value={c}>{c}</option>)}
                         </select>
                         </div>
@@ -478,7 +476,7 @@ const App: React.FC = () => {
                                     disabled={!detailedForm.city || fieldLoading.areas}
                                     className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
-                                    <option value="">{detailedForm.city ? "Select Area" : "Select District First"}</option>
+                                    <option value="">{detailedForm.city ? (suggestionLists.areas.length ? "Select Area" : "No areas found") : "Select District First"}</option>
                                     {suggestionLists.areas.map(a => <option key={a} value={a}>{a}</option>)}
                                 </select>
                              </div>
@@ -499,7 +497,7 @@ const App: React.FC = () => {
                                         disabled={!detailedForm.city || fieldLoading.mandals}
                                         className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
-                                        <option value="">{detailedForm.city ? "Select Mandal/Tehsil" : "Select District First"}</option>
+                                        <option value="">{detailedForm.city ? (suggestionLists.mandals.length ? "Select Mandal/Tehsil" : "No mandals found") : "Select District First"}</option>
                                         {suggestionLists.mandals.map(m => <option key={m} value={m}>{m}</option>)}
                                     </select>
                                 </div>
@@ -515,7 +513,7 @@ const App: React.FC = () => {
                                         disabled={!detailedForm.mandal || fieldLoading.villages}
                                         className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
-                                        <option value="">{detailedForm.mandal ? "Select Village/PO" : "Select Mandal First"}</option>
+                                        <option value="">{detailedForm.mandal ? (suggestionLists.villages.length ? "Select Village/PO" : "No villages found") : "Select Mandal First"}</option>
                                         {suggestionLists.villages.map(v => <option key={v} value={v}>{v}</option>)}
                                     </select>
                                 </div>
