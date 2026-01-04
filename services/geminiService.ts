@@ -2,13 +2,43 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { GEMINI_MODEL, GEMINI_LITE_MODEL } from "../constants";
 import { SearchResult } from "../types";
 
-// Initialize client lazily to prevent crash if env is missing during load
+// Helper to determine the API key from various environment configurations
+const getApiKey = (): string | undefined => {
+    // 1. Try standard process.env (Node/Webpack/standard setups)
+    if (typeof process !== 'undefined' && process.env) {
+        if (process.env.API_KEY) return process.env.API_KEY;
+        if (process.env.REACT_APP_API_KEY) return process.env.REACT_APP_API_KEY;
+        if (process.env.NEXT_PUBLIC_API_KEY) return process.env.NEXT_PUBLIC_API_KEY;
+    }
+
+    // 2. Try Vite standard (import.meta.env)
+    try {
+        // @ts-ignore
+        if (import.meta && import.meta.env) {
+            // @ts-ignore
+            if (import.meta.env.VITE_API_KEY) return import.meta.env.VITE_API_KEY;
+            // @ts-ignore
+            if (import.meta.env.API_KEY) return import.meta.env.API_KEY;
+        }
+    } catch (e) {
+        // Ignore errors if import.meta is not available
+    }
+
+    return undefined;
+};
+
+// Initialize client lazily
 const getAiClient = () => {
-    const key = process.env.API_KEY;
+    const key = getApiKey();
     if (!key) {
-        console.warn("API_KEY is missing in process.env");
+        console.warn("CRITICAL: API_KEY is missing in environment variables. Please check Vercel Settings.");
     }
     return new GoogleGenAI({ apiKey: key || "" });
+};
+
+// Public helper to check configuration status
+export const isApiKeyConfigured = (): boolean => {
+    return !!getApiKey();
 };
 
 // Helper to clean markdown formatting from JSON strings
@@ -24,6 +54,10 @@ const cleanJsonString = (text: string): string => {
 };
 
 export const searchPostcodes = async (query: string): Promise<SearchResult> => {
+  if (!getApiKey()) {
+      throw new Error("API Key Error: Missing configuration. Please see the instructions.");
+  }
+
   try {
     const ai = getAiClient();
     const response = await ai.models.generateContent({
@@ -52,7 +86,7 @@ export const searchPostcodes = async (query: string): Promise<SearchResult> => {
   } catch (error: any) {
     console.error("Gemini API Error (Search):", error);
     if (error.message?.includes("API key") || error.toString().includes("403") || error.toString().includes("API_KEY")) {
-        throw new Error("API Key Error: The API key is missing or invalid. Please check your configuration.");
+        throw new Error("API Key Error: API_KEY is missing or invalid in Vercel Environment Variables.");
     }
     throw new Error("Unable to fetch data. Please try again later.");
   }
@@ -62,6 +96,8 @@ export const getLocationSuggestions = async (
   level: 'state' | 'city' | 'area' | 'mandal' | 'village',
   context: { country?: string; state?: string; city?: string; mandal?: string }
 ): Promise<string[]> => {
+  if (!getApiKey()) return [];
+
   const fetchSuggestions = async (model: string) => {
       const ai = getAiClient();
       let prompt = "";
@@ -110,6 +146,8 @@ export const getLocationSuggestions = async (
 };
 
 export const getQuickSuggestions = async (partialQuery: string): Promise<string[]> => {
+  if (!getApiKey()) return [];
+  
   try {
     const ai = getAiClient();
     const response = await ai.models.generateContent({

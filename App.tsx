@@ -3,7 +3,7 @@ import { SearchIcon, MapPinIcon, SparklesIcon, ArrowRightIcon, GlobeIcon, ListBu
 import Footer from './components/Footer';
 import MarkdownText from './components/MarkdownText';
 import GroundingSources from './components/GroundingSources';
-import { searchPostcodes, getLocationSuggestions, getQuickSuggestions } from './services/geminiService';
+import { searchPostcodes, getLocationSuggestions, getQuickSuggestions, isApiKeyConfigured } from './services/geminiService';
 import { SearchState, SearchResult } from './types';
 import { APP_TITLE, SUGGESTED_QUERIES, COMMON_COUNTRIES } from './constants';
 
@@ -58,10 +58,21 @@ const App: React.FC = () => {
   const inputRef = useRef<HTMLInputElement>(null);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Check API Key on Mount
+  useEffect(() => {
+    if (!isApiKeyConfigured()) {
+        setState(prev => ({
+            ...prev,
+            error: "API_KEY_MISSING"
+        }));
+        setHasSearched(true); // Force show error view
+    }
+  }, []);
+
   // --- Quick Search Suggestion Logic ---
   useEffect(() => {
     // Only run in quick mode and if not currently searching main result
-    if (searchMode !== 'quick' || hasSearched) return;
+    if (searchMode !== 'quick' || hasSearched || !!state.error) return;
 
     if (state.query.length >= 3 && isTyping) {
         // Debounce API call
@@ -83,11 +94,17 @@ const App: React.FC = () => {
     return () => {
         if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
     };
-  }, [state.query, searchMode, hasSearched, isTyping]);
+  }, [state.query, searchMode, hasSearched, isTyping, state.error]);
 
 
   const handleSearch = useCallback(async (searchQuery: string) => {
     if (!searchQuery.trim()) return;
+
+    if (!isApiKeyConfigured()) {
+         setState(prev => ({ ...prev, error: "API_KEY_MISSING", loading: false }));
+         setHasSearched(true);
+         return;
+    }
 
     setHasSearched(true);
     setShowQuickSuggestions(false); // Hide suggestions on search
@@ -145,6 +162,8 @@ const App: React.FC = () => {
   // --- Cascading Logic Handlers ---
 
   const handleCountryChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+    if (!isApiKeyConfigured()) return; // Prevent interaction if key missing
+
     const country = e.target.value;
     setDetailedForm({ country, state: '', city: '', area: '', mandal: '', village: '' });
     setSuggestionLists({ states: [], cities: [], areas: [], mandals: [], villages: [] });
@@ -575,13 +594,56 @@ const App: React.FC = () => {
           <div className="w-full max-w-3xl animate-in fade-in slide-in-from-bottom-4 duration-500">
             {state.error ? (
               <div className="p-6 bg-red-50 border border-red-100 rounded-2xl text-red-600 text-center">
-                <p className="font-medium">{state.error}</p>
-                <button 
-                  onClick={() => handleSearch(state.query)}
-                  className="mt-3 text-sm underline hover:text-red-800"
-                >
-                  Try again
-                </button>
+                {state.error.includes("API_KEY_MISSING") || state.error.includes("API Key") ? (
+                    <div className="text-left max-w-lg mx-auto bg-white p-4 rounded-xl border border-red-100 shadow-sm">
+                        <h3 className="text-lg font-bold mb-3 text-red-700 flex items-center gap-2">
+                           <span>⚠️</span> Action Required: API Key Missing
+                        </h3>
+                        <p className="mb-4 text-sm text-slate-600 leading-relaxed">
+                            The application cannot connect to Google Gemini because the API Key is not found in the environment variables.
+                        </p>
+                        
+                        <div className="space-y-4">
+                            <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
+                                <h4 className="font-semibold text-sm text-slate-800 mb-2">Step 1: Go to Vercel</h4>
+                                <p className="text-xs text-slate-500">Project Settings &rarr; Environment Variables</p>
+                            </div>
+                            
+                            <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
+                                <h4 className="font-semibold text-sm text-slate-800 mb-2">Step 2: Add Variables</h4>
+                                <p className="text-xs text-slate-500 mb-2">Add <strong>both</strong> to be safe:</p>
+                                <div className="space-y-2">
+                                    <div className="flex items-center gap-2 text-xs font-mono bg-white p-1 rounded border border-slate-200">
+                                        <span className="text-purple-600 font-bold">VITE_API_KEY</span>
+                                        <span className="text-slate-400">=</span>
+                                        <span className="text-slate-500">Your_Gemini_Key...</span>
+                                    </div>
+                                    <div className="flex items-center gap-2 text-xs font-mono bg-white p-1 rounded border border-slate-200">
+                                        <span className="text-blue-600 font-bold">REACT_APP_API_KEY</span>
+                                        <span className="text-slate-400">=</span>
+                                        <span className="text-slate-500">Your_Gemini_Key...</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="p-3 bg-amber-50 rounded-lg border border-amber-200">
+                                <h4 className="font-semibold text-sm text-amber-800 mb-1">Step 3: Redeploy</h4>
+                                <p className="text-xs text-amber-700">Changes will not take effect until you redeploy the project.</p>
+                            </div>
+                        </div>
+                    </div>
+                ) : (
+                    <>
+                        <p className="font-medium">{state.error}</p>
+                        <button 
+                            onClick={() => handleSearch(state.query)}
+                            className="mt-3 text-sm underline hover:text-red-800"
+                        >
+                            Try again
+                        </button>
+                    </>
+                )}
+                
                 <div className="mt-6 pt-6 border-t border-red-200">
                      <button onClick={resetSearch} className="px-4 py-2 bg-white text-slate-700 border border-slate-300 rounded-lg hover:bg-slate-50 text-sm font-medium">Start New Search</button>
                 </div>
